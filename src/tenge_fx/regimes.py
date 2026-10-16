@@ -29,7 +29,7 @@ class Regime:
 
 
 REGIMES = (
-    Regime("managed", "2005-01-01", "2015-08-19", "managed",
+    Regime("managed", "2000-01-01", "2015-08-19", "managed",
            "Managed exchange rate until NBK abandoned the corridor."),
     Regime("transition", "2015-08-20", "2015-08-20", "transition",
            "Day of the float announcement; one-off policy jump, excluded."),
