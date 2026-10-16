@@ -1,0 +1,20 @@
+issue_id,source,description,rows_affected,unit,action
+N00,NBK,"Raw rows downloaded (all currencies, one XML document per calendar day)",280667,rows,none (baseline)
+N01,NBK,Calendar days for which the NBK feed returned no rates; longest run 2023-07-28..2023-08-21 (25 days),38,calendar days,left as gaps (no interpolation); returns spanning a long gap are invalidated
+N02,NBK,Non-numeric rate strings,0,rows,dropped
+N03,NBK,"Zero/negative placeholder rates, by currency: LTL (1)",1,rows,dropped (none in USD/EUR/RUB)
+N04,NBK,"Rates quoted per 10/100/1000/10000 units instead of 1 (currencies: AMD, BYN, HUF, IDR, IRR, JPY, KRW, MNT, TRL, UZS, VND); rows with quant!=1 among USD/EUR/RUB: 0",28431,rows,divided by quant -> rate per one unit (applied to all currencies)
+N05,NBK,Rows whose document date differs from the requested date,0,rows,none needed (document date always equals requested date)
+N06,NBK,"Duplicate (date, currency) rows",0,rows,dropped (kept first)
+N07,NBK,"Days where USD, EUR or RUB is missing",0,days,dropped
+N08,NBK,Days with a full USD/EUR/RUB triple available (of 7921 calendar days with data),7921,days,kept for further steps
+N09,NBK,"Rate dated T reflects the market of the previous business day (verified against ECB EUR/USD, see reports/data_quality.md); Sat/Sun/Mon-dated rows are copies of the same Friday market",3394,days (Sat+Sun+Mon dated),re-dated to previous business day (market_date); duplicates collapsed
+N10,NBK,Weekend/Monday-dated rows that map to the same Friday but carry a DIFFERENT value than the first-published one,73,rows,kept the earliest-dated (Saturday) value
+N11,NBK,"Weekday market dates where USD, EUR and RUB are all unchanged vs the previous trading day (public holidays: last rate republished)",331,market days,dropped (non-trading days)
+N12,NBK,"Daily USD/KZT moves above 5% remaining after cleaning (real events: 2009-02 and 2014-02 devaluations, 2015-08 float); inspected, not removed",13,market days,kept (genuine policy jumps)
+B00,FRED,Raw rows (DCOILBRENTEU),10281,rows,none (baseline)
+B01,FRED,Missing observations (FRED '.' markers: UK/US holidays),1173,rows,dropped; the as-of join carries the last available price forward
+B02,FRED,Zero/negative prices,0,rows,dropped
+B03,FRED,Duplicate dates,0,rows,dropped (kept first)
+B04,FRED,Weekend observations,0,rows,dropped
+B05,FRED,Daily Brent moves above 15% (e.g. 2020-03-09 OPEC+ shock); inspected,21,rows,kept (genuine)
