@@ -23,6 +23,8 @@ analysis:
 
 robustness:
 	$(RUN) tenge_fx.robustness
+	$(RUN) tenge_fx.dynamics
+	$(RUN) tenge_fx.joint
 
 plots:
 	$(RUN) tenge_fx.plots
