@@ -47,3 +47,25 @@ def offset_correlations(nbk_by_nbk_date: pd.DataFrame, ecb_log_eurusd: pd.Series
         d = j.diff().dropna()
         rows.append(dict(shift_days=off, n=len(d), corr=float(d["nbk"].corr(d["ecb"]))))
     return pd.DataFrame(rows)
+
+
+def ecb_rub_usd(ecb: pd.DataFrame) -> pd.Series:
+    """Independent log RUB/USD (rubles per dollar) from ECB EURRUB / EURUSD, 2005-04..2009-12
+    (the ECB file served here has no RUB before 2005-04 and is unusable after 2009-12)."""
+    df = ecb[["Date", "USD", "RUB"]].copy()
+    df["Date"] = pd.to_datetime(df["Date"])
+    for c in ("USD", "RUB"):
+        df[c] = pd.to_numeric(df[c], errors="coerce")
+    df = df[(df["Date"] <= ECB_LAST_GOOD) & df["USD"].between(0.8, 1.7) & df["RUB"].between(20, 60)]
+    s = df.set_index("Date").sort_index()
+    return np.log(s["RUB"]) - np.log(s["USD"])
+
+
+def cross_rate_agreement(mart_log_rub_usd: pd.Series, ecb_log_rub_usd: pd.Series) -> dict:
+    """How well the NBK-implied RUB/USD tracks the independent ECB-derived one (daily changes)."""
+    j = pd.concat([mart_log_rub_usd.rename("nbk"), ecb_log_rub_usd.rename("ecb")],
+                  axis=1, sort=True).dropna()
+    d = j.diff().dropna()
+    return dict(n=len(d), start=j.index.min().date(), end=j.index.max().date(),
+                corr=float(d["nbk"].corr(d["ecb"])),
+                std_ratio=float(d["nbk"].std() / d["ecb"].std()))
